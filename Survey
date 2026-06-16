@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Date Night 🌙</title>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Lato:wght@300;400;700&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #13110f;
+    --card: #1e1a17;
+    --accent1: #c9a96e;
+    --accent2: #a07840;
+    --accent3: #e8d5b0;
+    --text: #f0ebe3;
+    --subtext: #a89880;
+    --btn-bg: rgba(201,169,110,0.08);
+    --btn-border: rgba(201,169,110,0.3);
+    --btn-hover: rgba(201,169,110,0.18);
+  }
+
+  body {
+    font-family: 'Lato', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* Animated background */
+  .bg-stars {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    overflow: hidden;
+  }
+  .star {
+    position: absolute;
+    border-radius: 50%;
+    background: white;
+    animation: twinkle var(--d) ease-in-out infinite;
+    opacity: 0;
+  }
+  @keyframes twinkle {
+    0%, 100% { opacity: 0; transform: scale(0.8); }
+    50% { opacity: var(--o); transform: scale(1.2); }
+  }
+
+  /* Floating hearts */
+  .heart-container {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .heart {
+    position: absolute;
+    bottom: -50px;
+    font-size: var(--fs);
+    animation: floatUp var(--dur) ease-in infinite;
+    animation-delay: var(--delay);
+    opacity: 0;
+  }
+  @keyframes floatUp {
+    0% { transform: translateY(0) rotate(0deg); opacity: 0; }
+    10% { opacity: 0.6; }
+    90% { opacity: 0.3; }
+    100% { transform: translateY(-110vh) rotate(20deg); opacity: 0; }
+  }
+
+  /* Main card */
+  .survey-container {
+    position: relative;
+    z-index: 10;
+    width: 100%;
+    max-width: 680px;
+    padding: 20px;
+  }
+
+  .card {
+    background: var(--card);
+    border-radius: 24px;
+    padding: 48px 40px;
+    border: 1px solid rgba(201,169,110,0.2);
+    box-shadow: 0 0 60px rgba(201,169,110,0.08), 0 0 120px rgba(160,120,64,0.06);
+    position: relative;
+    overflow: hidden;
+  }
+  .card::before {
+    content: '';
+    position: absolute;
+    top: -2px; left: -2px; right: -2px; bottom: -2px;
+    border-radius: 26px;
+    background: linear-gradient(135deg, rgba(201,169,110,0.15), rgba(160,120,64,0.1), rgba(232,213,176,0.05));
+    z-index: -1;
+    animation: borderGlow 4s ease-in-out infinite;
+  }
+  @keyframes borderGlow {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 1; }
+  }
+
+  /* Screen transitions */
+  .screen {
+    display: none;
+    animation: fadeIn 0.6s ease forwards;
+  }
+  .screen.active {
+    display: block;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeOut {
+    from { opacity: 1; transform: translateY(0); }
+    to { opacity: 0; transform: translateY(-30px); }
+  }
+
+  /* Header */
+  .survey-header {
+    text-align: center;
+    margin-bottom: 36px;
+  }
+  .survey-header .emoji-big {
+    font-size: 48px;
+    display: block;
+    margin-bottom: 12px;
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+  }
+  .survey-header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    background: linear-gradient(135deg, var(--accent1), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 8px;
+  }
+  .survey-header p {
+    color: var(--subtext);
+    font-size: 0.95rem;
+    font-weight: 300;
+  }
+
+  /* Question */
+  .question-label {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.4rem;
+    color: var(--text);
+    margin-bottom: 24px;
+    line-height: 1.4;
+    text-align: center;
+  }
+
+  /* Options */
+  .options {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .option-btn {
+    background: var(--btn-bg);
+    border: 1px solid var(--btn-border);
+    border-radius: 14px;
+    padding: 16px 20px;
+    color: var(--text);
+    font-family: 'Lato', sans-serif;
+    font-size: 0.95rem;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.25s ease;
+    position: relative;
+    overflow: hidden;
+  }
+  .option-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, var(--accent1), var(--accent2));
+    opacity: 0;
+    transition: opacity 0.25s;
+    border-radius: 14px;
+  }
+  .option-btn:hover::before { opacity: 0.15; }
+  .option-btn:hover {
+    border-color: var(--accent1);
+    transform: translateX(6px);
+    box-shadow: 0 4px 20px rgba(201,169,110,0.15);
+  }
+  .option-btn span { position: relative; z-index: 1; }
+
+  /* Text input */
+  .text-input {
+    width: 100%;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--btn-border);
+    border-radius: 14px;
+    padding: 16px 20px;
+    color: var(--text);
+    font-family: 'Lato', sans-serif;
+    font-size: 0.95rem;
+    resize: vertical;
+    min-height: 100px;
+    margin-top: 8px;
+    transition: border-color 0.2s;
+  }
+  .text-input:focus {
+    outline: none;
+    border-color: var(--accent1);
+    box-shadow: 0 0 20px rgba(201,169,110,0.1);
+  }
+  .text-input::placeholder { color: var(--subtext); opacity: 0.6; }
+
+  /* Submit btn */
+  .submit-btn {
+    margin-top: 20px;
+    width: 100%;
+    padding: 18px;
+    border-radius: 14px;
+    border: none;
+    background: linear-gradient(135deg, var(--accent1), var(--accent2));
+    color: #13110f;
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    box-shadow: 0 4px 30px rgba(201,169,110,0.25);
+  }
+  .submit-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 40px rgba(201,169,110,0.4);
+  }
+
+  /* Progress dots */
+  .progress {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 32px;
+  }
+  .dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.2);
+    transition: all 0.3s;
+  }
+  .dot.active {
+    background: var(--accent1);
+    box-shadow: 0 0 8px var(--accent1);
+    width: 24px;
+    border-radius: 4px;
+  }
+  .dot.done { background: var(--accent2); }
+
+  /* Flash overlay */
+  .flash-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+  }
+  .flash-overlay.show {
+    opacity: 1;
+    pointer-events: all;
+  }
+  .flash-overlay.red-flash { background: rgba(220,0,0,0.92); }
+  .flash-overlay.hate-flash { background: rgba(40,20,10,0.95); }
+  .flash-overlay.suck-flash { background: rgba(20,15,10,0.97); }
+
+  .flash-text {
+    font-family: 'Playfair Display', serif;
+    font-size: 3rem;
+    color: white;
+    text-align: center;
+    text-shadow: 0 0 40px rgba(255,255,255,0.5);
+    animation: flashBounce 0.5s ease;
+    padding: 20px;
+  }
+  @keyframes flashBounce {
+    0% { transform: scale(0.5); }
+    60% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+  }
+
+  /* Correct answer celebration */
+  .celebration-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    background: rgba(19,17,15,0.97);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+  }
+  .celebration-overlay.show { opacity: 1; pointer-events: all; }
+  .celebration-text {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.5rem;
+    background: linear-gradient(135deg, var(--accent3), var(--accent1));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-align: center;
+    animation: celebPop 0.6s ease;
+  }
+  .confetti-piece {
+    position: fixed;
+    width: 10px; height: 10px;
+    border-radius: 2px;
+    animation: confettiFall var(--cd) ease-in forwards;
+    animation-delay: var(--cdelay);
+  }
+  @keyframes confettiFall {
+    0% { transform: translateY(-20px) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+  }
+  @keyframes celebPop {
+    0% { transform: scale(0); }
+    70% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+  }
+
+  /* Rocky animation */
+  .rocky-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    background: radial-gradient(circle, rgba(50,35,15,0.97), rgba(13,11,9,0.97));
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+  }
+  .rocky-overlay.show { opacity: 1; pointer-events: all; }
+  .rocky-text {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.6rem;
+    color: var(--accent3);
+    text-align: center;
+    text-shadow: 0 0 30px rgba(255,215,0,0.6);
+    max-width: 500px;
+    padding: 20px;
+    animation: rockPulse 0.8s ease-in-out infinite;
+  }
+  @keyframes rockPulse {
+    0%, 100% { transform: scale(1); text-shadow: 0 0 20px rgba(255,215,0,0.4); }
+    50% { transform: scale(1.05); text-shadow: 0 0 50px rgba(255,215,0,0.9); }
+  }
+  .rocky-emoji { font-size: 5rem; animation: rockPulse 0.8s ease-in-out infinite; }
+
+  /* Thank you screen */
+  .thankyou-content { text-align: center; padding: 20px 0; }
+  .thankyou-content .big-emoji { font-size: 64px; margin-bottom: 16px; display: block; }
+  .thankyou-content h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    background: linear-gradient(135deg, var(--accent1), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 12px;
+  }
+  .thankyou-content p { color: var(--subtext); line-height: 1.6; }
+
+  /* Fly away animation */
+  @keyframes flyAway {
+    0% { transform: translate(0,0) rotate(0deg); opacity: 1; }
+    100% { transform: translate(300px, -400px) rotate(45deg); opacity: 0; }
+  }
+  .fly-away { animation: flyAway 0.8s ease-in forwards !important; }
+
+  /* Selected state */
+  .option-btn.selected {
+    border-color: var(--accent1);
+    background: rgba(255,107,157,0.2);
+  }
+
+  /* Something else input */
+  .something-else-input {
+    margin-top: 10px;
+    display: none;
+  }
+  .something-else-input.show { display: block; }
+
+  @media (max-width: 600px) {
+    .card { padding: 32px 24px; }
+    .question-label { font-size: 1.2rem; }
+    .flash-text { font-size: 2rem; }
+    .celebration-text { font-size: 1.8rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Background -->
+<div class="bg-stars" id="bgStars"></div>
+<div class="heart-container" id="heartContainer"></div>
+
+<!-- Flash overlays -->
+<div class="flash-overlay red-flash" id="wrongAnswerFlash">
+  <div class="flash-text">🚫 WRONG ANSWER<br>TRY AGAIN 🚫</div>
+</div>
+<div class="flash-overlay hate-flash" id="hateMeFlash">
+  <div class="flash-text">Oh so you hate me 😤</div>
+</div>
+<div class="flash-overlay suck-flash" id="suckFlash">
+  <div class="flash-text">You suck btw 😑</div>
+</div>
+
+<!-- Celebration overlay -->
+<div class="celebration-overlay" id="celebrationOverlay">
+  <div style="font-size:3rem; margin-bottom:16px;">🎉🥂🎉</div>
+  <div class="celebration-text">CORRECT ANSWER!<br>Hugo Spritz it is! 🌿✨</div>
+</div>
+
+<!-- Rocky overlay -->
+<div class="rocky-overlay" id="rockyOverlay">
+  <div class="rocky-emoji">🥊</div>
+  <div class="rocky-text">MY WALKOUT VIDEO TO THE FINAL TIJUANA NIGHT LEVEL HUNGRY 🎵</div>
+  <div style="color: #ffd700; font-size:1rem; margin-top:16px; opacity:0.7;">*Rocky theme intensifies*</div>
+</div>
+
+<!-- Main survey -->
+<div class="survey-container">
+  <div class="card">
+
+    <!-- SCREEN: Opening Q1 -->
+    <div class="screen active" id="screen-main-q1">
+      <div class="survey-header">
+        <span class="emoji-big">🌙</span>
+        <h1>Welcome to me wasting time at work</h1>
+        <p>Let's figure out this evening, shall we?</p>
+      </div>
+      <div class="progress">
+        <div class="dot active"></div>
+      </div>
+      <div class="question-label">What are we feeling for this evening?</div>
+      <div class="options">
+        <button class="option-btn" onclick="selectFlow('cooking')"><span>👨‍🍳 Watch me become Gordon frickin Ramsey in the kitchen</span></button>
+        <button class="option-btn" onclick="selectFlow('fun')"><span>🎉 Go do something fun</span></button>
+        <button class="option-btn" onclick="selectFlow('dinner')"><span>🍽️ Dinner and drinks (probably quite a few drinks)</span></button>
+      </div>
+    </div>
+
+    <!-- ============ COOKING FLOW ============ -->
+    <div class="screen" id="screen-cooking-q1">
+      <div class="progress" id="prog-cooking-1"></div>
+      <div class="question-label">📅 Date and time?</div>
+      <div class="options">
+        <button class="option-btn" onclick="cookingAnswer(1,'Thursday night at my house around 6/7 👀', this)"><span>Thursday night at my house around 6/7 👀</span></button>
+        <button class="option-btn" onclick="cookingAnswer(1,'Thursday night at my house at 8', this)"><span>Thursday night at my house at 8</span></button>
+        <button class="option-btn" onclick="cookingAnswer(1,'Thursday night I come to your house and we\'re both chefing', this)"><span>Thursday night I come to your house and we're both chefing</span></button>
+        <button class="option-btn" onclick="cookingAnswer(1,'We\'re screwed because Tim\'s schedule messed this up', this)"><span>We're screwed because Tim's schedule messed this up</span></button>
+      </div>
+    </div>
+
+    <div class="screen" id="screen-cooking-q2">
+      <div class="progress" id="prog-cooking-2"></div>
+      <div class="question-label">🍽️ What are we eating?</div>
+      <div class="options">
+        <button class="option-btn" onclick="cookingAnswer(2,'Chicken Piccata', this)"><span>I make a professional chicken piccata and would highly recommend</span></button>
+        <button class="option-btn" onclick="cookingAnswer(2,'Seabass', this)"><span>Weird one but I make a gas seabass</span></button>
+        <button class="option-btn" onclick="cookingAnswer(2,'Chicken Cutlets (together!)', this)"><span>Chicken cutlets (which we'd be making together btw so lock in)</span></button>
+        <button class="option-btn" id="nugget-btn" onclick="wrongAnswer()"><span>Chicken nuggets</span></button>
+      </div>
+    </div>
+
+    <div class="screen" id="screen-cooking-q3">
+      <div class="progress" id="prog-cooking-3"></div>
+      <div class="question-label">🥂 What are we drinking?</div>
+      <div class="options">
+        <button class="option-btn" onclick="hugoSpritz(this)"><span>Hugo Spritz</span></button>
+        <button class="option-btn" onclick="cookingAnswer(3,'Water (boring choice 😑)', this)"><span>Water (which would be a very boring choice out of you)</span></button>
+        <button class="option-btn" onclick="hateMeAnswer()"><span>White wine</span></button>
+        <button class="option-btn" onclick="cookingAnswer(3,'Random drinks in the moment', this)"><span>Random drinks we will find in the moment</span></button>
+      </div>
+    </div>
+
+    <div class="screen" id="screen-cooking-q4">
+      <div class="progress" id="prog-cooking-4"></div>
+      <div class="question-label">💐 Should I bring flowers? (It's been too long so seems an appropriate question)</div>
+      <div class="options">
+        <button class="option-btn" onclick="cookingAnswer(4,'Duh 🌸', this)"><span>Duh</span></button>
+        <button class="option-btn" onclick="cookingAnswer(4,'Perhaps 🤔', this)"><span>Perhaps</span></button>
+        <button class="option-btn" onclick="cookingAnswer(4,'No I\'m boring', this)"><span>No I'm boring</span></button>
+      </div>
+    </div>
+
+    <div class="screen" id="screen-cooking-q5">
+      <div class="progress" id="prog-cooking-5"></div>
+      <div class="question-label">💬 Any additional comments?</div>
+      <textarea class="text-input" id="cooking-comments" placeholder="Anything else on your mind..."></textarea>
+      <button class="submit-btn" onclick="submitSurvey('cooking')">Send it 💌</button>
+    </div>
+
+    <!-- ============ FUN FLOW ============ -->
+    <div class="screen" id="screen-fun-q1">
+      <div class="progress" id="prog-fun-1"></div>
+      <div class="question-label">📍 When and where should we meet?</div>
+      <div class="options">
+        <button class="option-btn" onclick="funAnswer(1,'My house after work', this)"><span>My house after work</span></button>
+        <button class="option-btn" onclick="funAnswer(1,'Your house after work', this)"><span>Your house after work</span></button>
+        <button class="option-btn" onclick="funAnswer(1,'Meet wherever we\'re going (risky tho because you can\'t drive)', this)"><span>Meet wherever we're going (this is risky tho because you can't drive)</span></button>
+        <button class="option-btn" id="giveup-btn" onclick="giveUpAnswer()"><span>I give up too much work</span></button>
+      </div>
+    </div>
+
+    <div class="screen" id="screen-fun-q2">
+      <div class="progress" id="prog-fun-2"></div>
+      <div class="question-label">🗺️ Where should we go?</div>
+      <div class="options">
+        <button class="option-btn" onclick="funAnswer(2,'Mini golf and ice cream 🍦', this)"><span>Mini golf and ice cream (Loser buys ice cream and I'm not losing btw)</span></button>
+        <button class="option-btn" onclick="funAnswer(2,'Movies 🎬', this)"><span>Movies (we can go watch that scary one I keep forgetting the name of)</span></button>
+        <button class="option-btn" onclick="funAnswer(2,'Lowkey rot at one of our houses 🛋️', this)"><span>Lowkey just rot at one of our houses and watch a movie</span></button>
+        <button class="option-btn" onclick="funSomethingElse(this)"><span>Something else...</span></button>
+      </div>
+      <div class="something-else-input" id="something-else-container">
+        <textarea class="text-input" id="something-else-text" placeholder="What did you have in mind?"></textarea>
+        <button class="submit-btn" style="margin-top:12px;" onclick="funSomethingElseSubmit()">Next →</button>
+      </div>
+    </div>
+
+    <div class="screen" id="screen-fun-q3">
+      <div class="progress" id="prog-fun-3"></div>
+      <div class="question-label">💐 Should I bring flowers?</div>
+      <div class="options">
+        <button class="option-btn" onclick="funAnswer(3,'Duh 🌸', this)"><span>Duh</span></button>
+        <button class="option-btn" onclick="funAnswer(3,'Perhaps 🤔', this)"><span>Perhaps</span></button>
+        <button class="option-btn" onclick="funAnswer(3,'No I\'m boring', this)"><span>No I'm boring</span></button>
+      </div>
+    </div>
+
+    <div class="screen" id="screen-fun-q4">
+      <div class="progress" id="prog-fun-4"></div>
+      <div class="question-label">💬 Any additional comments?</div>
+      <textarea class="text-input" id="fun-comments" placeholder="Anything else on your mind..."></textarea>
+      <button class="submit-btn" onclick="submitSurvey('fun')">Send it 💌</button>
+    </div>
+
+    <!-- ============ DINNER FLOW ============ -->
+    <div class="screen" id="screen-dinner-q1">
+      <div class="progress" id="prog-dinner-1"></div>
+      <div class="question-label">📍 Place and time?</div>
+      <div class="options">
+        <button class="option-btn" onclick="dinnerAnswer(1,'Thursday meet at my house after work', this)"><span>Thursday meet at my house after work</span></button>
+        <button class="option-btn" onclick="dinnerAnswer(1,'Thursday meet at your house after work', this)"><span>Thursday meet at your house after work</span></button>
+      </div>
+    </div>
+
+    <div class="screen" id="screen-dinner-q2">
+      <div class="progress" id="prog-dinner-2"></div>
+      <div class="question-label">🍜 Where we going?</div>
+      <div class="options">
+        <button class="option-btn" onclick="dinnerAnswer(2,'SUSHI 🍣', this)"><span>SUSHI 🍣</span></button>
+        <button class="option-btn" onclick="dinnerAnswer(2,'Mexican (infinite margs are mandatory) 🌮', this)"><span>Mexican (infinite margs are mandatory) 🌮</span></button>
+        <button class="option-btn" onclick="dinnerAnswer(2,'Shake Shack and milkshakes 🍔', this)"><span>Shake Shack and milkshakes 🍔</span></button>
+        <button class="option-btn" onclick="dinnerAnswer(2,'Classy dinner 🥂', this)"><span>Classy dinner 🥂</span></button>
+      </div>
+    </div>
+
+    <div class="screen" id="screen-dinner-q3">
+      <div class="progress" id="prog-dinner-3"></div>
+      <div class="question-label">🍽️ How hungry are we going to be feeling?</div>
+      <div class="options">
+        <button class="option-btn" onclick="dinnerAnswer(3,'Barely hungry (doesn\'t apply to you apparently)', this)"><span>Barely hungry (This doesn't apply to me duh)</span></button>
+        <button class="option-btn" onclick="dinnerAnswer(3,'Slightly hungry (never felt that way either)', this)"><span>Slightly Hungry (I've also never felt that way)</span></button>
+        <button class="option-btn" onclick="dinnerAnswer(3,'Reasonably hungry', this)"><span>Reasonably hungry</span></button>
+        <button class="option-btn" onclick="rockyAnswer()"><span>My walkout video to the final Tijuana night level hungry 🥊</span></button>
+      </div>
+    </div>
+
+    <div class="screen" id="screen-dinner-q4">
+      <div class="progress" id="prog-dinner-4"></div>
+      <div class="question-label">💐 Should I bring flowers?</div>
+      <div class="options">
+        <button class="option-btn" onclick="dinnerAnswer(4,'Duh 🌸', this)"><span>Duh</span></button>
+        <button class="option-btn" onclick="dinnerAnswer(4,'Perhaps 🤔', this)"><span>Perhaps</span></button>
+        <button class="option-btn" onclick="dinnerAnswer(4,'No I\'m boring', this)"><span>No I'm boring</span></button>
+      </div>
+    </div>
+
+    <div class="screen" id="screen-dinner-q5">
+      <div class="progress" id="prog-dinner-5"></div>
+      <div class="question-label">💬 Any additional comments?</div>
+      <textarea class="text-input" id="dinner-comments" placeholder="Anything else on your mind..."></textarea>
+      <button class="submit-btn" onclick="submitSurvey('dinner')">Send it 💌</button>
+    </div>
+
+    <!-- THANK YOU -->
+    <div class="screen" id="screen-thankyou">
+      <div class="thankyou-content">
+        <span class="big-emoji">💌</span>
+        <h2>Answers sent!</h2>
+        <p>He's got your picks now. Get ready for a good night. 🌙✨</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<audio id="rockyAudio" preload="auto">
+  <!-- Rocky theme via Web Audio API fallback below -->
+</audio>
+
+<script>
+emailjs.init("dAYQLSD092k3nluuU");
+
+// State
+const answers = {};
+let currentFlow = null;
+
+// Build stars
+const bgStars = document.getElementById('bgStars');
+for (let i = 0; i < 120; i++) {
+  const s = document.createElement('div');
+  s.className = 'star';
+  const size = Math.random() * 3 + 1;
+  s.style.cssText = `width:${size}px;height:${size}px;top:${Math.random()*100}%;left:${Math.random()*100}%;--d:${2+Math.random()*4}s;--o:${0.3+Math.random()*0.7};animation-delay:${Math.random()*4}s`;
+  bgStars.appendChild(s);
+}
+
+// Build floating hearts
+const heartContainer = document.getElementById('heartContainer');
+const heartEmojis = ['💕','✨','🌙','💫','❤️','🌸','💖'];
+for (let i = 0; i < 15; i++) {
+  const h = document.createElement('div');
+  h.className = 'heart';
+  h.textContent = heartEmojis[Math.floor(Math.random()*heartEmojis.length)];
+  h.style.cssText = `left:${Math.random()*100}%;--fs:${14+Math.random()*20}px;--dur:${8+Math.random()*12}s;--delay:${Math.random()*10}s`;
+  heartContainer.appendChild(h);
+}
+
+// Build progress dots
+function buildProgress(prefix, total, current) {
+  for (let i = 1; i <= total; i++) {
+    const el = document.getElementById(`prog-${prefix}-${i}`);
+    if (!el) continue;
+    el.innerHTML = '';
+    for (let j = 1; j <= total; j++) {
+      const d = document.createElement('div');
+      d.className = 'dot' + (j < i ? ' done' : j === i ? ' active' : '');
+      el.appendChild(d);
+    }
+  }
+}
+buildProgress('cooking', 5, 1);
+buildProgress('fun', 4, 1);
+buildProgress('dinner', 5, 1);
+
+// Transition between screens
+function goTo(screenId) {
+  const current = document.querySelector('.screen.active');
+  if (current) {
+    current.style.animation = 'fadeOut 0.4s ease forwards';
+    setTimeout(() => {
+      current.classList.remove('active');
+      current.style.animation = '';
+      const next = document.getElementById(screenId);
+      next.classList.add('active');
+    }, 400);
+  } else {
+    document.getElementById(screenId).classList.add('active');
+  }
+}
+
+// Main flow selector
+function selectFlow(flow) {
+  currentFlow = flow;
+  answers.mainChoice = flow === 'cooking' ? '👨‍🍳 Cooking Night' : flow === 'fun' ? '🎉 Go Do Something Fun' : '🍽️ Dinner and Drinks';
+  goTo(`screen-${flow}-q1`);
+}
+
+// ===== COOKING FLOW =====
+function cookingAnswer(q, value, btn) {
+  answers[`cooking_q${q}`] = value;
+  if (q < 5) goTo(`screen-cooking-q${q+1}`);
+}
+
+function wrongAnswer() {
+  const overlay = document.getElementById('wrongAnswerFlash');
+  overlay.classList.add('show');
+  setTimeout(() => overlay.classList.remove('show'), 4000);
+}
+
+function hugoSpritz(btn) {
+  answers.cooking_q3 = 'Hugo Spritz 🌿 (CORRECT ANSWER!)';
+  // confetti
+  for (let i = 0; i < 60; i++) {
+    const c = document.createElement('div');
+    c.className = 'confetti-piece';
+    const colors = ['#ff6b9d','#c44dff','#ffd700','#00ffcc','#ff4444'];
+    c.style.cssText = `left:${Math.random()*100}vw;top:${Math.random()*30}vh;background:${colors[Math.floor(Math.random()*colors.length)]};--cd:${1+Math.random()*2}s;--cdelay:${Math.random()*0.5}s;transform:rotate(${Math.random()*360}deg)`;
+    document.body.appendChild(c);
+    setTimeout(() => c.remove(), 3000);
+  }
+  const overlay = document.getElementById('celebrationOverlay');
+  overlay.classList.add('show');
+  setTimeout(() => {
+    overlay.classList.remove('show');
+    goTo('screen-cooking-q4');
+  }, 2800);
+}
+
+function hateMeAnswer() {
+  answers.cooking_q3 = 'White wine (the audacity)';
+  const overlay = document.getElementById('hateMeFlash');
+  overlay.classList.add('show');
+  setTimeout(() => {
+    overlay.classList.remove('show');
+    goTo('screen-cooking-q4');
+  }, 3000);
+}
+
+// ===== FUN FLOW =====
+function funAnswer(q, value, btn) {
+  answers[`fun_q${q}`] = value;
+  const nextMap = { 1: 'screen-fun-q2', 2: 'screen-fun-q3', 3: 'screen-fun-q4' };
+  if (nextMap[q]) goTo(nextMap[q]);
+}
+
+function giveUpAnswer() {
+  const overlay = document.getElementById('suckFlash');
+  overlay.classList.add('show');
+  setTimeout(() => {
+    overlay.classList.remove('show');
+    const btn = document.getElementById('giveup-btn');
+    btn.classList.add('fly-away');
+    answers.fun_q1 = 'I give up — too much work (you suck btw)';
+    setTimeout(() => goTo('screen-fun-q2'), 900);
+  }, 3000);
+}
+
+function funSomethingElse(btn) {
+  btn.classList.add('selected');
+  const container = document.getElementById('something-else-container');
+  container.classList.add('show');
+}
+
+function funSomethingElseSubmit() {
+  const val = document.getElementById('something-else-text').value.trim();
+  answers.fun_q2 = val ? `Something else: ${val}` : 'Something else (no details given)';
+  goTo('screen-fun-q3');
+}
+
+// ===== DINNER FLOW =====
+function dinnerAnswer(q, value, btn) {
+  answers[`dinner_q${q}`] = value;
+  const nextMap = { 1: 'screen-dinner-q2', 2: 'screen-dinner-q3', 3: 'screen-dinner-q4', 4: 'screen-dinner-q5' };
+  if (nextMap[q]) goTo(nextMap[q]);
+}
+
+function rockyAnswer() {
+  answers.dinner_q3 = '🥊 TIJUANA NIGHT LEVEL HUNGRY (Rocky theme activated)';
+  playRockyTheme();
+  const overlay = document.getElementById('rockyOverlay');
+  overlay.classList.add('show');
+  setTimeout(() => {
+    overlay.classList.remove('show');
+    stopRockyTheme();
+    goTo('screen-dinner-q4');
+  }, 4000);
+}
+
+// Rocky theme via Web Audio API
+let rockyCtx = null;
+let rockyNodes = [];
+
+function playRockyTheme() {
+  try {
+    rockyCtx = new (window.AudioContext || window.webkitAudioContext)();
+    // Rocky theme notes (simplified fanfare)
+    const notes = [
+      {f:392,d:0.15},{f:392,d:0.15},{f:392,d:0.15},{f:523,d:0.4},
+      {f:659,d:0.15},{f:523,d:0.15},{f:659,d:0.6},
+      {f:784,d:0.15},{f:698,d:0.15},{f:784,d:0.15},{f:880,d:0.4},
+      {f:784,d:0.15},{f:698,d:0.15},{f:784,d:0.6},
+      {f:1047,d:0.3},{f:988,d:0.15},{f:880,d:0.15},{f:784,d:0.6}
+    ];
+    let time = rockyCtx.currentTime + 0.05;
+    notes.forEach(note => {
+      const osc = rockyCtx.createOscillator();
+      const gain = rockyCtx.createGain();
+      osc.connect(gain);
+      gain.connect(rockyCtx.destination);
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(note.f, time);
+      gain.gain.setValueAtTime(0.18, time);
+      gain.gain.exponentialRampToValueAtTime(0.001, time + note.d);
+      osc.start(time);
+      osc.stop(time + note.d + 0.05);
+      rockyNodes.push(osc);
+      time += note.d + 0.03;
+    });
+  } catch(e) { console.log('Audio not available'); }
+}
+
+function stopRockyTheme() {
+  if (rockyCtx) {
+    try { rockyCtx.close(); } catch(e) {}
+    rockyCtx = null;
+    rockyNodes = [];
+  }
+}
+
+// ===== SUBMIT =====
+function submitSurvey(flow) {
+  let comments = '';
+  if (flow === 'cooking') comments = document.getElementById('cooking-comments').value;
+  if (flow === 'fun') comments = document.getElementById('fun-comments').value;
+  if (flow === 'dinner') comments = document.getElementById('dinner-comments').value;
+  answers[`${flow}_comments`] = comments || 'None';
+
+  let message = `🌙 DATE NIGHT SURVEY RESULTS\n`;
+  message += `============================\n\n`;
+  message += `MAIN CHOICE: ${answers.mainChoice}\n\n`;
+
+  if (flow === 'cooking') {
+    message += `📅 Date & Time: ${answers.cooking_q1 || '—'}\n`;
+    message += `🍽️ What to eat: ${answers.cooking_q2 || '—'}\n`;
+    message += `🥂 Drinks: ${answers.cooking_q3 || '—'}\n`;
+    message += `💐 Flowers: ${answers.cooking_q4 || '—'}\n`;
+    message += `💬 Comments: ${answers.cooking_comments}\n`;
+  } else if (flow === 'fun') {
+    message += `📍 Meet where: ${answers.fun_q1 || '—'}\n`;
+    message += `🗺️ Activity: ${answers.fun_q2 || '—'}\n`;
+    message += `💐 Flowers: ${answers.fun_q3 || '—'}\n`;
+    message += `💬 Comments: ${answers.fun_comments}\n`;
+  } else if (flow === 'dinner') {
+    message += `📍 Meet where: ${answers.dinner_q1 || '—'}\n`;
+    message += `🍜 Restaurant: ${answers.dinner_q2 || '—'}\n`;
+    message += `🍽️ Hunger level: ${answers.dinner_q3 || '—'}\n`;
+    message += `💐 Flowers: ${answers.dinner_q4 || '—'}\n`;
+    message += `💬 Comments: ${answers.dinner_comments}\n`;
+  }
+
+  const btn = document.querySelector(`#screen-${flow}-q5 .submit-btn`) || document.querySelector(`#screen-${flow}-q4 .submit-btn`);
+  if (btn) { btn.textContent = 'Sending... 💌'; btn.disabled = true; }
+
+  emailjs.send("service_kn5lani", "template_k01ucgo", {
+    message: message,
+    to_email: "opuglielli@gmail.com",
+    subject: "Date Night Survey Results 💌"
+  }).then(() => {
+    goTo('screen-thankyou');
+  }).catch((err) => {
+    console.error('EmailJS error:', err);
+    // Still show thank you even if email fails during testing
+    goTo('screen-thankyou');
+  });
+}
+</script>
+</body>
+</html>
